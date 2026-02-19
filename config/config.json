@@ -5,42 +5,25 @@
   "inbounds": [
     {
       "listen": "0.0.0.0",
-      "port": 443,
+      "port": 8080,
       "protocol": "vless",
       "settings": {
         "clients": [
           {
-            "id": "dee46f90-cbe4-4474-a4ac-cae0e4149eb4",
-            "flow": "xtls-rprx-vision"
+            "id": "dee46f90-cbe4-4474-a4ac-cae0e4149eb4"
           }
         ],
         "decryption": "none"
       },
       "streamSettings": {
-        "network": "tcp",
-        "security": "reality",
-        "realitySettings": {
-          "show": false,
-          "dest": "www.gosuslugi.ru:443",
-          "xver": 0,
-          "serverNames": [
-            "www.gosuslugi.ru",
-            "gosuslugi.ru"
-          ],
-          "privateKey": "eDUFAuRJFcUCTj4mHh3dLqhf5Vl4-myKE5esPdor_E4",
-          "shortIds": [
-            "",
-            "0123456789abcdef"
-          ]
+        "network": "ws",
+        "wsSettings": {
+          "path": "/ws"
         }
       },
       "sniffing": {
         "enabled": true,
-        "destOverride": [
-          "http",
-          "tls",
-          "quic"
-        ]
+        "destOverride": ["http", "tls"]
       }
     }
   ],

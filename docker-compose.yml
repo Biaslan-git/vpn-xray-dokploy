@@ -3,10 +3,23 @@ version: "3.8"
 services:
   xray:
     image: ghcr.io/xtls/xray-core:latest
-    container_name: xray-reality
+    container_name: xray-vless
     restart: unless-stopped
-    ports:
-      - "443:443"
+    command: ["run", "-c", "/etc/xray/config.json"]
     volumes:
       - ./config:/etc/xray:ro
-    command: ["run", "-c", "/etc/xray/config.json"]
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS роутинг
+      - "traefik.http.routers.xray.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.xray.entrypoints=websecure"
+      - "traefik.http.routers.xray.tls=true"
+      - "traefik.http.routers.xray.tls.certresolver=letsencrypt"
+      # Сервис
+      - "traefik.http.services.xray.loadbalancer.server.port=8080"
+
+networks:
+  dokploy-network:
+    external: true
