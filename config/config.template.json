@@ -8,11 +8,7 @@
       "port": 8080,
       "protocol": "vless",
       "settings": {
-        "clients": [
-          {
-            "id": "${UUID}"
-          }
-        ],
+        "clients": ${CLIENTS},
         "decryption": "none"
       },
       "streamSettings": {
