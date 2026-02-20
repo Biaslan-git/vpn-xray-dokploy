@@ -18,6 +18,9 @@ UUID=$(cat /proc/sys/kernel/random/uuid)
 mkdir -p /opt/xray-reality
 cd /opt/xray-reality
 
+# Сохраняем public key для add-user.sh
+echo "$PUBLIC_KEY" > /opt/xray-reality/public.key
+
 # Создаём конфиг
 cat > config.json << EOF
 {
@@ -72,3 +75,16 @@ echo ""
 echo "vless://$UUID@$SERVER_IP:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.gosuslugi.ru&fp=chrome&pbk=$PUBLIC_KEY&type=tcp#Reality-Gosuslugi"
 echo ""
 echo "=========================================="
+echo ""
+echo "Управление пользователями:"
+echo "  cd /opt/xray-reality"
+echo "  ./add-user.sh Имя      - добавить юзера"
+echo "  ./list-users.sh        - список юзеров"
+echo "  ./remove-user.sh UUID  - удалить юзера"
+echo ""
+
+# Скачиваем вспомогательные скрипты
+curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/add-user.sh -o /opt/xray-reality/add-user.sh
+curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/list-users.sh -o /opt/xray-reality/list-users.sh
+curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/remove-user.sh -o /opt/xray-reality/remove-user.sh
+chmod +x /opt/xray-reality/*.sh
