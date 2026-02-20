@@ -16,9 +16,16 @@ fi
 
 # Генерируем ключи
 echo "Генерация ключей..."
-KEYS=$(docker run --rm ghcr.io/xtls/xray-core:latest x25519)
-PRIVATE_KEY=$(echo "$KEYS" | grep "Private" | awk '{print $3}')
-PUBLIC_KEY=$(echo "$KEYS" | grep "Public" | awk '{print $3}')
+KEYS=$(docker run --rm ghcr.io/xtls/xray-core:latest x25519 2>&1)
+PRIVATE_KEY=$(echo "$KEYS" | grep -i "private" | awk -F': ' '{print $2}' | tr -d ' ')
+PUBLIC_KEY=$(echo "$KEYS" | grep -i "public" | awk -F': ' '{print $2}' | tr -d ' ')
+
+# Проверяем что ключи получены
+if [ -z "$PRIVATE_KEY" ] || [ -z "$PUBLIC_KEY" ]; then
+    echo "Ошибка генерации ключей. Вывод:"
+    echo "$KEYS"
+    exit 1
+fi
 
 # Генерируем UUID
 UUID=$(cat /proc/sys/kernel/random/uuid)
@@ -67,8 +74,13 @@ docker run -d \
   -v /opt/xray-reality/config.json:/etc/xray/config.json:ro \
   ghcr.io/xtls/xray-core:latest
 
-# Получаем IP сервера
-SERVER_IP=$(curl -s ifconfig.me)
+# Получаем IP сервера (предпочитаем IPv4)
+SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me)
+
+# Если IPv6 - оборачиваем в скобки
+if [[ "$SERVER_IP" == *":"* ]]; then
+    SERVER_IP="[$SERVER_IP]"
+fi
 
 echo ""
 echo "=========================================="

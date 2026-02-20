@@ -32,8 +32,13 @@ else
     PUBLIC_KEY=$(cat "$PUBLIC_KEY_FILE")
 fi
 
-# Получаем IP сервера
-SERVER_IP=$(curl -s ifconfig.me)
+# Получаем IP сервера (предпочитаем IPv4)
+SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me)
+
+# Если IPv6 - оборачиваем в скобки
+if [[ "$SERVER_IP" == *":"* ]]; then
+    SERVER_IP="[$SERVER_IP]"
+fi
 
 # Добавляем пользователя в конфиг с помощью jq
 if ! command -v jq &> /dev/null; then
