@@ -1,69 +1,77 @@
-# XRay VLESS + WebSocket + TLS + Cloudflare
+# XRay VLESS VPN
 
-VPN через Dokploy/Traefik + Cloudflare CDN. Трафик идёт через Cloudflare — сложнее заблокировать.
+Два варианта VPN для обхода блокировок:
 
-## Деплой в Dokploy
+| Вариант | Маскировка | Для чего |
+|---------|------------|----------|
+| **Cloudflare** | Обычный HTTPS | Основной, через Dokploy |
+| **Reality** | Госуслуги | Backup, жёсткие белые списки |
 
-### 1. Создай Compose-сервис
+---
 
-1. В Dokploy: **Create** → **Compose**
-2. Укажи Git-репозиторий
-3. В **Environment** добавь:
+## Вариант 1: Cloudflare + Dokploy
+
+VPN через Traefik + Cloudflare CDN.
+
+### Деплой
+
+1. В Dokploy: **Create** → **Compose** → укажи этот репозиторий
+2. В **Environment** добавь:
    ```
    DOMAIN=vpn.твой-домен.com
    UUID=твой-uuid-сюда
    WS_PATH=/ws
    ```
+   UUID сгенерировать: `uuidgen`
+3. **Deploy**
 
-   UUID можно сгенерировать командой: `uuidgen`
+Несколько пользователей — UUID через запятую: `UUID=uuid1,uuid2,uuid3`
 
-4. **Deploy**
-
-### 2. Настрой домен
-
-В Dokploy добавь домен → направь на сервис.
-
-Traefik автоматически получит Let's Encrypt сертификат.
-
----
-
-## Подключение клиента
-
-### VLESS ссылка
+### Подключение
 
 ```
 vless://UUID@ДОМЕН:443?encryption=none&security=tls&type=ws&path=/ws#VPN
 ```
 
-### Клиенты
+---
+
+## Вариант 2: Reality (одна команда)
+
+Маскировка под госуслуги. Не требует домена и SSL.
+
+### Установка
+
+```bash
+curl -sL "https://cdn.jsdelivr.net/gh/Biaslan-git/vpn-xray-dokploy@master/reality-backup/install.sh" | bash
+```
+
+Скрипт автоматически:
+- Установит XRay
+- Сгенерирует ключи
+- Создаст systemd сервис
+- Выдаст ссылку для клиента
+
+### Управление пользователями
+
+```bash
+cd /opt/xray-reality
+./add-user.sh Имя       # добавить
+./list-users.sh         # список со ссылками
+./remove-user.sh UUID   # удалить
+```
+
+### Управление сервисом
+
+```bash
+systemctl status xray-reality    # статус
+systemctl restart xray-reality   # перезапуск
+journalctl -u xray-reality -f    # логи
+```
+
+---
+
+## Клиенты
 
 - **Android**: v2rayNG, NekoBox
 - **iOS**: Shadowrocket, Streisand
 - **Windows/Mac/Linux**: Nekoray
-
----
-
-## Настройка в v2rayNG
-
-1. **+** → **Ввод вручную** → **VLESS**
-2. Заполни:
-   - Address: `твой-домен`
-   - Port: `443`
-   - UUID: `твой-uuid`
-   - Flow: пусто
-   - TLS: tls
-   - Transport: ws
-   - Path: `/ws`
-3. Сохрани и подключайся
-
----
-
-## Reality вариант (backup)
-
-Для обхода жёстких белых списков есть отдельный скрипт с маскировкой под госуслуги:
-
-```bash
-curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/install.sh | bash
-```
-
-См. папку `reality-backup/`.

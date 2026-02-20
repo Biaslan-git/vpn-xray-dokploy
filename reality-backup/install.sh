@@ -132,7 +132,7 @@ echo "  ./remove-user.sh UUID  - удалить юзера"
 echo ""
 
 # Скачиваем вспомогательные скрипты
-curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/add-user.sh?$(date +%s)" -o /opt/xray-reality/add-user.sh
-curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/list-users.sh?$(date +%s)" -o /opt/xray-reality/list-users.sh
-curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/remove-user.sh?$(date +%s)" -o /opt/xray-reality/remove-user.sh
+curl -sL "https://cdn.jsdelivr.net/gh/Biaslan-git/vpn-xray-dokploy@master/reality-backup/add-user.sh" -o /opt/xray-reality/add-user.sh
+curl -sL "https://cdn.jsdelivr.net/gh/Biaslan-git/vpn-xray-dokploy@master/reality-backup/list-users.sh" -o /opt/xray-reality/list-users.sh
+curl -sL "https://cdn.jsdelivr.net/gh/Biaslan-git/vpn-xray-dokploy@master/reality-backup/remove-user.sh" -o /opt/xray-reality/remove-user.sh
 chmod +x /opt/xray-reality/*.sh
