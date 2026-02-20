@@ -10,7 +10,7 @@
       "settings": {
         "clients": [
           {
-            "id": "dee46f90-cbe4-4474-a4ac-cae0e4149eb4"
+            "id": "${UUID}"
           }
         ],
         "decryption": "none"
@@ -18,7 +18,7 @@
       "streamSettings": {
         "network": "ws",
         "wsSettings": {
-          "path": "/ws"
+          "path": "${WS_PATH}"
         }
       },
       "sniffing": {

@@ -11,12 +11,17 @@ VPN через Dokploy/Traefik + Cloudflare CDN. Трафик идёт чере�
 3. В **Environment** добавь:
    ```
    DOMAIN=vpn.твой-домен.com
+   UUID=твой-uuid-сюда
+   WS_PATH=/ws
    ```
+
+   UUID можно сгенерировать командой: `uuidgen`
+
 4. **Deploy**
 
 ### 2. Настрой домен
 
-В Dokploy добавь домен `vpn.твой-домен.com` → направь на сервис.
+В Dokploy добавь домен → направь на сервис.
 
 Traefik автоматически получит Let's Encrypt сертификат.
 
@@ -24,21 +29,10 @@ Traefik автоматически получит Let's Encrypt сертифик
 
 ## Подключение клиента
 
-### Данные
-
-| Параметр | Значение |
-|----------|----------|
-| Address | vpn.твой-домен.com |
-| Port | 443 |
-| UUID | `dee46f90-cbe4-4474-a4ac-cae0e4149eb4` |
-| Security | tls |
-| Transport | ws (WebSocket) |
-| Path | /ws |
-
 ### VLESS ссылка
 
 ```
-vless://dee46f90-cbe4-4474-a4ac-cae0e4149eb4@vpn.твой-домен.com:443?encryption=none&security=tls&type=ws&path=/ws#VPN
+vless://UUID@ДОМЕН:443?encryption=none&security=tls&type=ws&path=/ws#VPN
 ```
 
 ### Клиенты
@@ -53,11 +47,23 @@ vless://dee46f90-cbe4-4474-a4ac-cae0e4149eb4@vpn.твой-домен.com:443?enc
 
 1. **+** → **Ввод вручную** → **VLESS**
 2. Заполни:
-   - Address: `vpn.твой-домен.com`
+   - Address: `твой-домен`
    - Port: `443`
-   - UUID: `dee46f90-cbe4-4474-a4ac-cae0e4149eb4`
+   - UUID: `твой-uuid`
    - Flow: пусто
    - TLS: tls
    - Transport: ws
    - Path: `/ws`
 3. Сохрани и подключайся
+
+---
+
+## Reality вариант (backup)
+
+Для обхода жёстких белых списков есть отдельный скрипт с маскировкой под госуслуги:
+
+```bash
+curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/install.sh | bash
+```
+
+См. папку `reality-backup/`.

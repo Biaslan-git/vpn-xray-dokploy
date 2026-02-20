@@ -2,12 +2,14 @@ version: "3.8"
 
 services:
   xray:
-    image: ghcr.io/xtls/xray-core:latest
+    build: .
     container_name: xray-vless
     restart: unless-stopped
-    command: ["run", "-c", "/etc/xray/config.json"]
+    environment:
+      - UUID=${UUID}
+      - WS_PATH=${WS_PATH:-/ws}
     volumes:
-      - ./config:/etc/xray:ro
+      - ./config/config.template.json:/etc/xray/config.template.json:ro
     networks:
       - dokploy-network
     labels:
