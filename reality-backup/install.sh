@@ -17,8 +17,10 @@ fi
 # Генерируем ключи
 echo "Генерация ключей..."
 KEYS=$(docker run --rm ghcr.io/xtls/xray-core:latest x25519 2>&1)
-PRIVATE_KEY=$(echo "$KEYS" | grep -i "private" | awk -F': ' '{print $2}' | tr -d ' ')
-PUBLIC_KEY=$(echo "$KEYS" | grep -i "public" | awk -F': ' '{print $2}' | tr -d ' ')
+
+# Парсим ключи (формат: PrivateKey: xxx / Public key: xxx или Password: xxx)
+PRIVATE_KEY=$(echo "$KEYS" | grep -i "private" | awk -F': ' '{print $2}' | tr -d ' \r')
+PUBLIC_KEY=$(echo "$KEYS" | grep -iE "public|password" | awk -F': ' '{print $2}' | tr -d ' \r')
 
 # Проверяем что ключи получены
 if [ -z "$PRIVATE_KEY" ] || [ -z "$PUBLIC_KEY" ]; then
@@ -26,6 +28,9 @@ if [ -z "$PRIVATE_KEY" ] || [ -z "$PUBLIC_KEY" ]; then
     echo "$KEYS"
     exit 1
 fi
+
+echo "Private Key: $PRIVATE_KEY"
+echo "Public Key: $PUBLIC_KEY"
 
 # Генерируем UUID
 UUID=$(cat /proc/sys/kernel/random/uuid)
