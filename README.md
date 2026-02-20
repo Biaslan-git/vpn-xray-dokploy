@@ -1,6 +1,6 @@
-# XRay VLESS + WebSocket + TLS
+# XRay VLESS + WebSocket + TLS + Cloudflare
 
-VPN через Dokploy/Traefik. Трафик выглядит как обычный HTTPS.
+VPN через Dokploy/Traefik + Cloudflare CDN. Трафик идёт через Cloudflare — сложнее заблокировать.
 
 ## Деплой в Dokploy
 
