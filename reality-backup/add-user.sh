@@ -5,8 +5,8 @@
 set -e
 
 CONFIG_FILE="/opt/xray-reality/config.json"
+PUBLIC_KEY_FILE="/opt/xray-reality/public.key"
 
-# Проверяем что конфиг существует
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Ошибка: конфиг не найден: $CONFIG_FILE"
     echo "Сначала запусти install.sh"
@@ -19,10 +19,7 @@ USER_NAME="${1:-User}"
 # Генерируем UUID
 NEW_UUID=$(cat /proc/sys/kernel/random/uuid)
 
-# Получаем public key из конфига (нужен для ссылки)
-# Его нет в конфиге, нужно хранить отдельно или получить заново
-PUBLIC_KEY_FILE="/opt/xray-reality/public.key"
-
+# Получаем public key
 if [ ! -f "$PUBLIC_KEY_FILE" ]; then
     echo "Ошибка: файл с public key не найден: $PUBLIC_KEY_FILE"
     echo "Введи public key вручную:"
@@ -32,26 +29,18 @@ else
     PUBLIC_KEY=$(cat "$PUBLIC_KEY_FILE")
 fi
 
-# Получаем IP сервера (предпочитаем IPv4)
+# Получаем IP сервера
 SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me)
-
-# Если IPv6 - оборачиваем в скобки
 if [[ "$SERVER_IP" == *":"* ]]; then
     SERVER_IP="[$SERVER_IP]"
 fi
 
-# Добавляем пользователя в конфиг с помощью jq
-if ! command -v jq &> /dev/null; then
-    echo "Устанавливаю jq..."
-    apt-get update && apt-get install -y jq
-fi
-
-# Создаём нового клиента и добавляем в массив
+# Добавляем пользователя в конфиг
 jq ".inbounds[0].settings.clients += [{\"id\": \"$NEW_UUID\", \"flow\": \"xtls-rprx-vision\"}]" "$CONFIG_FILE" > /tmp/config.json.tmp
 mv /tmp/config.json.tmp "$CONFIG_FILE"
 
-# Перезапускаем контейнер
-docker restart xray-reality
+# Перезапускаем сервис
+systemctl restart xray-reality
 
 echo ""
 echo "=========================================="

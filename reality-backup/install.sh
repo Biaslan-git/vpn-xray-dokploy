@@ -5,30 +5,29 @@
 
 set -e
 
-# Устанавливаем Docker если нет
-if ! command -v docker &> /dev/null; then
-    echo "Docker не найден, устанавливаю..."
-    curl -fsSL https://get.docker.com | sh
-    systemctl enable docker
-    systemctl start docker
-    echo "Docker установлен"
-fi
+echo "=== Установка XRay Reality VPN ==="
+
+# Устанавливаем зависимости
+apt-get update
+apt-get install -y curl unzip jq
+
+# Скачиваем xray
+echo "Скачиваю XRay..."
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then ARCH="64"; elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64-v8a"; fi
+curl -sL -o /tmp/xray.zip "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-${ARCH}.zip"
+unzip -o /tmp/xray.zip -d /usr/local/bin/
+chmod +x /usr/local/bin/xray
+rm /tmp/xray.zip
 
 # Генерируем ключи
 echo "Генерация ключей..."
-KEYS=$(docker run --rm ghcr.io/xtls/xray-core:latest x25519 2>&1)
-
-# Парсим ключи (разные форматы вывода xray)
-# Формат может быть "PrivateKey: xxx" или "Private key: xxx"
+KEYS=$(/usr/local/bin/xray x25519)
 PRIVATE_KEY=$(echo "$KEYS" | grep -i "private" | sed 's/.*: *//' | tr -d ' \r\n')
 PUBLIC_KEY=$(echo "$KEYS" | grep -iE "public|password" | head -1 | sed 's/.*: *//' | tr -d ' \r\n')
 
-echo "Parsed Private: $PRIVATE_KEY"
-echo "Parsed Public: $PUBLIC_KEY"
-
-# Проверяем что ключи получены
 if [ -z "$PRIVATE_KEY" ] || [ -z "$PUBLIC_KEY" ]; then
-    echo "Ошибка генерации ключей. Вывод:"
+    echo "Ошибка генерации ключей"
     echo "$KEYS"
     exit 1
 fi
@@ -38,13 +37,12 @@ UUID=$(cat /proc/sys/kernel/random/uuid)
 
 # Создаём директорию
 mkdir -p /opt/xray-reality
-cd /opt/xray-reality
 
-# Сохраняем public key для add-user.sh
+# Сохраняем public key
 echo "$PUBLIC_KEY" > /opt/xray-reality/public.key
 
 # Создаём конфиг
-cat > config.json << EOF
+cat > /opt/xray-reality/config.json << EOF
 {
   "log": {"loglevel": "warning"},
   "inbounds": [{
@@ -71,22 +69,38 @@ cat > config.json << EOF
 }
 EOF
 
-# Запускаем контейнер
+# Создаём systemd сервис
+cat > /etc/systemd/system/xray-reality.service << 'EOF'
+[Unit]
+Description=Xray Reality VPN
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/xray run -c /opt/xray-reality/config.json
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Останавливаем старый Docker контейнер если есть
 docker rm -f xray-reality 2>/dev/null || true
-docker run -d \
-  --name xray-reality \
-  --restart unless-stopped \
-  --network host \
-  -v /opt/xray-reality/config.json:/etc/xray/config.json:ro \
-  ghcr.io/xtls/xray-core:latest
 
-# Получаем IP сервера (предпочитаем IPv4)
+# Запускаем сервис
+systemctl daemon-reload
+systemctl enable xray-reality
+systemctl restart xray-reality
+
+# Получаем IP сервера
 SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me)
-
-# Если IPv6 - оборачиваем в скобки
 if [[ "$SERVER_IP" == *":"* ]]; then
     SERVER_IP="[$SERVER_IP]"
 fi
+
+# Ждём запуска
+sleep 2
 
 echo ""
 echo "=========================================="
@@ -103,6 +117,13 @@ echo "vless://$UUID@$SERVER_IP:443?encryption=none&flow=xtls-rprx-vision&securit
 echo ""
 echo "=========================================="
 echo ""
+echo "Статус: $(systemctl is-active xray-reality)"
+echo ""
+echo "Управление:"
+echo "  systemctl status xray-reality  - статус"
+echo "  systemctl restart xray-reality - перезапуск"
+echo "  journalctl -u xray-reality -f  - логи"
+echo ""
 echo "Управление пользователями:"
 echo "  cd /opt/xray-reality"
 echo "  ./add-user.sh Имя      - добавить юзера"
@@ -111,7 +132,7 @@ echo "  ./remove-user.sh UUID  - удалить юзера"
 echo ""
 
 # Скачиваем вспомогательные скрипты
-curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/add-user.sh -o /opt/xray-reality/add-user.sh
-curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/list-users.sh -o /opt/xray-reality/list-users.sh
-curl -sL https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/remove-user.sh -o /opt/xray-reality/remove-user.sh
+curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/add-user.sh?$(date +%s)" -o /opt/xray-reality/add-user.sh
+curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/list-users.sh?$(date +%s)" -o /opt/xray-reality/list-users.sh
+curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/master/reality-backup/remove-user.sh?$(date +%s)" -o /opt/xray-reality/remove-user.sh
 chmod +x /opt/xray-reality/*.sh

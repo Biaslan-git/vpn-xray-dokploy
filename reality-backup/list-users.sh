@@ -10,22 +10,19 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-if ! command -v jq &> /dev/null; then
-    apt-get update && apt-get install -y jq
-fi
-
 SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me)
-
-# Если IPv6 - оборачиваем в скобки
 if [[ "$SERVER_IP" == *":"* ]]; then
     SERVER_IP="[$SERVER_IP]"
 fi
+
 PUBLIC_KEY=$(cat "$PUBLIC_KEY_FILE" 2>/dev/null || echo "UNKNOWN")
 
 echo ""
 echo "=========================================="
 echo "         Все пользователи"
 echo "=========================================="
+echo ""
+echo "Статус: $(systemctl is-active xray-reality 2>/dev/null || echo "не установлен")"
 echo ""
 
 # Получаем всех клиентов

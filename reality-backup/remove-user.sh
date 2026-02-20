@@ -14,10 +14,6 @@ fi
 
 UUID_TO_REMOVE="$1"
 
-if ! command -v jq &> /dev/null; then
-    apt-get update && apt-get install -y jq
-fi
-
 # Проверяем что UUID существует
 if ! jq -e ".inbounds[0].settings.clients[] | select(.id == \"$UUID_TO_REMOVE\")" "$CONFIG_FILE" > /dev/null 2>&1; then
     echo "Ошибка: UUID не найден"
@@ -28,7 +24,7 @@ fi
 jq "del(.inbounds[0].settings.clients[] | select(.id == \"$UUID_TO_REMOVE\"))" "$CONFIG_FILE" > /tmp/config.json.tmp
 mv /tmp/config.json.tmp "$CONFIG_FILE"
 
-# Перезапускаем
-docker restart xray-reality
+# Перезапускаем сервис
+systemctl restart xray-reality
 
 echo "Пользователь $UUID_TO_REMOVE удалён"
