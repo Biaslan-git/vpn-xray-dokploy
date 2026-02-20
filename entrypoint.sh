@@ -24,4 +24,4 @@ export WS_PATH="${WS_PATH:-/ws}"
 envsubst '${CLIENTS} ${WS_PATH}' < /etc/xray/config.template.json > /tmp/config.json
 
 # Запускаем XRay
-exec xray run -c /tmp/config.json
+exec /usr/local/bin/xray run -c /tmp/config.json

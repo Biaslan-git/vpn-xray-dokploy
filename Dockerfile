@@ -1,12 +1,16 @@
-FROM ghcr.io/xtls/xray-core:latest AS xray
-
 FROM alpine:latest
 
-# Устанавливаем envsubst
-RUN apk add --no-cache gettext
+# Устанавливаем зависимости
+RUN apk add --no-cache gettext ca-certificates curl unzip
 
-# Копируем xray из официального образа
-COPY --from=xray /usr/bin/xray /usr/bin/xray
+# Скачиваем xray
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then ARCH="64"; \
+    elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64-v8a"; fi && \
+    curl -L -o /tmp/xray.zip "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-${ARCH}.zip" && \
+    unzip /tmp/xray.zip -d /usr/local/bin && \
+    rm /tmp/xray.zip && \
+    chmod +x /usr/local/bin/xray
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
