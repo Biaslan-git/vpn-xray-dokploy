@@ -5,6 +5,15 @@
 
 set -e
 
+# Устанавливаем Docker если нет
+if ! command -v docker &> /dev/null; then
+    echo "Docker не найден, устанавливаю..."
+    curl -fsSL https://get.docker.com | sh
+    systemctl enable docker
+    systemctl start docker
+    echo "Docker установлен"
+fi
+
 # Генерируем ключи
 echo "Генерация ключей..."
 KEYS=$(docker run --rm ghcr.io/xtls/xray-core:latest x25519)
