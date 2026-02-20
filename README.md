@@ -42,7 +42,7 @@ vless://UUID@ДОМЕН:443?encryption=none&security=tls&type=ws&path=/ws#VPN
 ### Установка
 
 ```bash
-curl -sL "https://cdn.jsdelivr.net/gh/Biaslan-git/vpn-xray-dokploy@master/reality-backup/install.sh" | bash
+curl -sL "https://raw.githubusercontent.com/Biaslan-git/vpn-xray-dokploy/refs/heads/master/reality-backup/install.sh" | bash
 ```
 
 Скрипт автоматически:
