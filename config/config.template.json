@@ -2,6 +2,13 @@
   "log": {
     "loglevel": "warning"
   },
+  "dns": {
+    "servers": [
+      "8.8.8.8",
+      "8.8.4.4",
+      "1.1.1.1"
+    ]
+  },
   "inbounds": [
     {
       "listen": "0.0.0.0",
@@ -26,11 +33,24 @@
   "outbounds": [
     {
       "protocol": "freedom",
-      "tag": "direct"
+      "tag": "direct",
+      "settings": {
+        "domainStrategy": "UseIP"
+      }
     },
     {
       "protocol": "blackhole",
       "tag": "block"
     }
-  ]
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "network": "tcp,udp"
+      }
+    ]
+  }
 }
